@@ -5,3 +5,4 @@ composable-test/=lib/composable-cow/test/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 cowprotocol/=lib/composable-cow/lib/cowprotocol/src/contracts/
 safe/=lib/composable-cow/lib/safe/contracts/
+safe-contracts/=lib/safe-contracts/contracts/

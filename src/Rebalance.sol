@@ -21,10 +21,11 @@ string constant ORACLE_STALE_PRICE = "oracle stale price";
 
 string constant ILLEGAL_DELTA = "illegal delta";
 
-bytes32 constant DOMAIN_SEPARATOR = 0xfb378b35457022ecc5709ae5dafad9393c1387ae6d8ce24913a0c969074c07fb;
-
 contract Rebalance is BaseConditionalOrder {
     using Math for uint256;
+
+    bytes32 public DOMAIN_SEPARATOR =
+        0xfb378b35457022ecc5709ae5dafad9393c1387ae6d8ce24913a0c969074c07fb;
 
     uint256 public tolerance = 5; // 5% tolerance for rebalancing
 
