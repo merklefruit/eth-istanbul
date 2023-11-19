@@ -58,7 +58,7 @@ export default function InvestInPortfolio({ params }: Props) {
                   allocations change, your portfolio will be automatically
                   rebalanced
                 </b>{" "}
-                to match the new allocations.
+                to match the new allocation.
               </p>
 
               <p className="mt-4">
