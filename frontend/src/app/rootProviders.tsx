@@ -5,6 +5,13 @@ import { goerli } from "viem/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { Toaster } from "@/components/ui/toaster";
 
+// la spazzatura globale
+export let safeAddress: string | null = null;
+
+export function setSafeAddress(address: string) {
+  safeAddress = address;
+}
+
 const { publicClient, webSocketPublicClient } = configureChains(
   [goerli],
   [publicProvider()]

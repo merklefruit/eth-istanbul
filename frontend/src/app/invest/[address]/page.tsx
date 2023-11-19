@@ -3,6 +3,16 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useContractWrite } from "wagmi";
+import {
+  COMPOSABLE_COW_ADDRESS,
+  REBALANCE_ADDRESS,
+  TOKENS,
+} from "@/lib/consts";
+import ComposableCow from "@/abi/ComposableCow.json";
+import { ethers } from "ethers";
+import { solidityKeccak256 } from "ethers/lib/utils";
+import { safeAddress } from "@/app/rootProviders";
 
 interface Props {
   params: {
@@ -11,6 +21,52 @@ interface Props {
 }
 
 export default function InvestInPortfolio({ params }: Props) {
+  const encodedInputs = ethers.utils.defaultAbiCoder.encode(
+    [
+      "(address[],int256[],address,bytes32,address,bool,uint32,address[],uint256)",
+    ],
+    [
+      [
+        // Tokens
+        TOKENS.find((t) => t.symbol === "WETH")?.address,
+        TOKENS.find((t) => t.symbol === "DAI")?.address,
+      ],
+      [
+        // Deltas
+        10, -30,
+      ],
+      // Target portfolio address
+      params.address,
+      // App data, (keccak of "replicow")
+      "0xea9008283f15ea89b03886fb577d2c0acbc0c62e4717f2320d8fb4473e607faa",
+      // Receiver (safe address)
+      safeAddress,
+      // Partially fillable
+      false,
+      // Validity buckets seconds
+      600,
+      [
+        // Assets price oracles
+      ],
+      // Max time since last oracle update
+      3600,
+    ]
+  );
+
+  const { write: createOrder, data } = useContractWrite({
+    address: REBALANCE_ADDRESS,
+    abi: ComposableCow.abi,
+    functionName: "create",
+    args: [
+      [
+        REBALANCE_ADDRESS,
+        "0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000",
+        "",
+      ],
+      true,
+    ],
+  });
+
   return (
     <div className="relative flex items-center justify-center w-full">
       <div className="absolute top-4 left-4">
@@ -43,7 +99,10 @@ export default function InvestInPortfolio({ params }: Props) {
 
             <div className="mt-4 flex gap-4">
               <Input type="text" placeholder="Amount in ETH" className="w-64" />
-              <Button className="bg-gray-800 py-1 hover:bg-gray-700">
+              <Button
+                onClick={() => createOrder()}
+                className="bg-gray-800 py-1 hover:bg-gray-700"
+              >
                 Invest and Replicate!
               </Button>
             </div>

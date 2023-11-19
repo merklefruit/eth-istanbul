@@ -1,25 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import {
   useAccount,
   useConnect,
   useContractWrite,
   useDisconnect,
   useEnsName,
-  usePrepareContractWrite,
 } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { Button } from "@/components/ui/button";
 import { HomeTable } from "@/components/HomeTable";
 import { useToast } from "@/components/ui/use-toast";
 import SafeFactory from "@/abi/SafeFactory.json";
+import SafeModdato from "@/abi/SafeModdato.json";
 import { SAFE_FACTORY_ADDRESS } from "@/lib/consts";
 import { fmtAddress } from "@/lib/utils";
+import { useState } from "react";
+import { safeAddress } from "./rootProviders";
 
 export default function Home() {
-  const [safeAccount, setSafeAccount] = useState<string | null>(null);
-
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
   const { data: ensName } = useEnsName({ address });
@@ -28,12 +27,19 @@ export default function Home() {
     connector: new InjectedConnector({ options: { shimDisconnect: true } }),
   });
 
-  const { config: createSafeConfig } = usePrepareContractWrite({
+  const { write: createSafe } = useContractWrite({
     address: SAFE_FACTORY_ADDRESS,
     abi: SafeFactory.abi,
     functionName: "createSafe",
   });
-  const { write: createSafe } = useContractWrite(createSafeConfig);
+
+  const { write: modSafe } = useContractWrite({
+    address: safeAddress as any,
+    abi: SafeModdato.abi,
+    functionName: "mod",
+  });
+
+  let safeAccount = "";
 
   return (
     <div className="flex w-full">
