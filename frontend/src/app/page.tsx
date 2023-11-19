@@ -1,23 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useConnect, useEnsName } from "wagmi";
-import { Badge } from "@/components/ui/badge";
+import {
+  useAccount,
+  useConnect,
+  useContractWrite,
+  useDisconnect,
+  useEnsName,
+  usePrepareContractWrite,
+} from "wagmi";
+import { InjectedConnector } from "wagmi/connectors/injected";
 import { Button } from "@/components/ui/button";
 import { HomeTable } from "@/components/HomeTable";
+import { useToast } from "@/components/ui/use-toast";
+import SafeFactory from "@/abi/SafeFactory.json";
+import { SAFE_FACTORY_ADDRESS } from "@/lib/consts";
 import { fmtAddress } from "@/lib/utils";
-import { InjectedConnector } from "wagmi/connectors/injected";
 
 export default function Home() {
   const [safeAccount, setSafeAccount] = useState<string | null>(null);
-  const [precalculatedSafeAccountAddress, setPrecalculatedSafeAccountAddress] =
-    useState<string>("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326");
 
+  const { toast } = useToast();
   const { address, isConnected } = useAccount();
   const { data: ensName } = useEnsName({ address });
+  const { disconnect } = useDisconnect();
   const { connect } = useConnect({
     connector: new InjectedConnector({ options: { shimDisconnect: true } }),
   });
+
+  const { config: createSafeConfig } = usePrepareContractWrite({
+    address: SAFE_FACTORY_ADDRESS,
+    abi: SafeFactory.abi,
+    functionName: "createSafe",
+  });
+  const { write: createSafe } = useContractWrite(createSafeConfig);
 
   return (
     <div className="flex w-full">
@@ -25,28 +41,45 @@ export default function Home() {
         <div className="flex flex-col justify-between h-full w-full">
           <div className="mt-8 p-4 flex flex-col gap-4 items-center">
             {isConnected ? (
-              <Button>{ensName ?? fmtAddress(address!)}</Button>
+              <Button
+                onClick={() => {
+                  disconnect();
+                  toast({ title: "Wallet disconnected!" });
+                }}
+              >
+                {ensName ?? fmtAddress(address!)}
+              </Button>
             ) : (
               <Button
-                onClick={() => connect({ chainId: 5 })}
+                onClick={() => {
+                  connect({ chainId: 5 });
+                  toast({ title: "Wallet connected to Goerli!" });
+                }}
                 className="border"
               >
                 Connect wallet
               </Button>
             )}
 
-            {safeAccount ? (
-              <Badge className="bg-green-400 text-black rounded-xl hover:bg-green-300">
-                Safe created
-              </Badge>
-            ) : (
-              <Badge className="bg-white text-black rounded-xl hover:bg-gray-100">
-                Creation pending
-              </Badge>
+            {address && (
+              <>
+                {safeAccount ? (
+                  <Button className="bg-green-400 text-black rounded-xl hover:bg-green-300">
+                    Safe created
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => createSafe?.()}
+                    className="bg-white text-black hover:bg-gray-100 rounded-xl"
+                  >
+                    Create Safe
+                  </Button>
+                )}
+                <div className="text-sm -mt-2 text-green-400">
+                  {/* {fmtAddress(safeAccount || precalculatedSafeAccountAddress)} */}
+                </div>
+              </>
             )}
-            <div className="text-sm -mt-2 text-green-400">
-              {fmtAddress(safeAccount || precalculatedSafeAccountAddress)}
-            </div>
           </div>
         </div>
       </div>
@@ -62,7 +95,8 @@ export default function Home() {
 
         <div id="content" className="p-4">
           <h1 className="text-2xl font-medium">
-            Start your <b className="text-green-400">Replication</b> journey!
+            You're a bad trader? Just{" "}
+            <b className="text-green-400">Replicate</b> the pros!
           </h1>
 
           <div className="mt-8 border border-white p-1">

@@ -3,6 +3,7 @@
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { goerli } from "viem/chains";
 import { publicProvider } from "wagmi/providers/public";
+import { Toaster } from "@/components/ui/toaster";
 
 const { publicClient, webSocketPublicClient } = configureChains(
   [goerli],
@@ -20,5 +21,10 @@ export default function RootProviders({
 }: {
   children: React.ReactNode;
 }) {
-  return <WagmiConfig config={config}>{children}</WagmiConfig>;
+  return (
+    <WagmiConfig config={config}>
+      <main>{children}</main>
+      <Toaster />
+    </WagmiConfig>
+  );
 }
